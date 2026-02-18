@@ -1,0 +1,390 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  password        String
+  name            String
+  phone           String?
+  role            String    @default("RESIDENT") // ADMIN, COMMITTEE, RESIDENT, TENANT
+  flatId          String?
+  isActive        Boolean   @default(true)
+  mustSetPassword Boolean   @default(false) // True for bulk-imported users
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  flat          Flat?     @relation(fields: [flatId], references: [id])
+
+  uploadedDocuments   Document[]      @relation("UploadedBy")
+  documentAccesses    DocumentAccess[]
+  createdExpenses     Expense[]       @relation("CreatedBy")
+  approvedExpenses    Expense[]       @relation("ApprovedBy")
+  createdPolls        Poll[]          @relation("CreatedBy")
+  votes               PollVote[]
+  createdTenders      Tender[]        @relation("CreatedBy")
+  createdAnnouncements Announcement[] @relation("CreatedBy")
+  complaints          Complaint[]     @relation("CreatedBy")
+  assignedComplaints  Complaint[]     @relation("AssignedTo")
+  passwordResetTokens PasswordResetToken[]
+
+  @@index([flatId])
+  @@index([role])
+}
+
+model Flat {
+  id          String    @id @default(cuid())
+  flatNumber  String    @unique
+  block       String?
+  floor       Int?
+  area        Float?
+  ownerName   String?
+  ownerPhone  String?
+  ownerEmail  String?
+  isOccupied  Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  residents   User[]
+  votes       PollVote[]
+
+  @@index([block])
+  @@index([floor])
+}
+
+model Document {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  category    String   // MEETING_MINUTES, AUDIT_REPORT, BYLAWS, etc.
+  fileUrl     String
+  fileName    String
+  fileSize    Int
+  mimeType    String?
+  version     Int      @default(1)
+  uploadedById String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  uploadedBy  User     @relation("UploadedBy", fields: [uploadedById], references: [id])
+  accesses    DocumentAccess[]
+
+  @@index([category])
+  @@index([uploadedById])
+}
+
+model DocumentAccess {
+  id          String   @id @default(cuid())
+  documentId  String
+  userId      String
+  action      String   @default("VIEW")
+  accessedAt  DateTime @default(now())
+
+  document    Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@index([documentId])
+  @@index([userId])
+}
+
+model Expense {
+  id            String   @id @default(cuid())
+  category      String   // SECURITY, CLEANING, etc.
+  description   String
+  amount        Float
+  vendorName    String?
+  vendorId      String?
+  invoiceNumber String?
+  date          DateTime
+  receiptUrl    String?
+  paidTo        String?
+  paymentMode   String   @default("BANK_TRANSFER")
+  isApproved    Boolean  @default(false)
+  approvedById  String?
+  approvedAt    DateTime?
+  createdById   String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  createdBy     User     @relation("CreatedBy", fields: [createdById], references: [id])
+  approvedBy    User?    @relation("ApprovedBy", fields: [approvedById], references: [id])
+
+  @@index([category])
+  @@index([date])
+  @@index([createdById])
+}
+
+model MonthlyBudget {
+  id            String   @id @default(cuid())
+  month         Int
+  year          Int
+  category      String
+  budgetedAmount Float
+  actualAmount  Float    @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([month, year, category])
+  @@index([year, month])
+}
+
+model Poll {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  type        String   @default("POLL") // POLL, ELECTION
+  startDate   DateTime
+  endDate     DateTime
+  isAnonymous Boolean  @default(false)
+  status      String   @default("DRAFT") // DRAFT, ACTIVE, CLOSED
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdBy   User       @relation("CreatedBy", fields: [createdById], references: [id])
+  options     PollOption[]
+  votes       PollVote[]
+
+  @@index([status])
+  @@index([createdById])
+}
+
+model PollOption {
+  id          String   @id @default(cuid())
+  pollId      String
+  optionText  String
+  description String?
+
+  poll        Poll     @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  votes       PollVote[]
+
+  @@index([pollId])
+}
+
+model PollVote {
+  id        String   @id @default(cuid())
+  pollId    String
+  optionId  String
+  flatId    String
+  userId    String
+  votedAt   DateTime @default(now())
+
+  poll      Poll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  option    PollOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  flat      Flat       @relation(fields: [flatId], references: [id])
+  user      User       @relation(fields: [userId], references: [id])
+
+  @@unique([pollId, flatId])
+  @@index([pollId])
+  @@index([optionId])
+}
+
+model Tender {
+  id                String   @id @default(cuid())
+  title             String
+  description       String
+  category          String
+  deadline          DateTime
+  minBudget         Float?
+  maxBudget         Float?
+  requiredDocuments String?  // JSON string
+  status            String   @default("OPEN") // OPEN, EVALUATION, AWARDED, CANCELLED
+  awardedToId       String?
+  awardReason       String?
+  createdById       String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  createdBy         User       @relation("CreatedBy", fields: [createdById], references: [id])
+  awardedTo         TenderBid? @relation("AwardedTo", fields: [awardedToId], references: [id])
+  bids              TenderBid[] @relation("TenderBids")
+
+  @@index([status])
+  @@index([deadline])
+  @@index([createdById])
+}
+
+model TenderBid {
+  id          String   @id @default(cuid())
+  tenderId    String
+  vendorName  String
+  vendorEmail String
+  vendorPhone String?
+  bidAmount   Float
+  proposal    String?
+  attachments String?  // JSON string
+  submittedAt DateTime @default(now())
+
+  tender      Tender   @relation("TenderBids", fields: [tenderId], references: [id], onDelete: Cascade)
+  awardedTenders Tender[] @relation("AwardedTo")
+
+  @@index([tenderId])
+}
+
+model Announcement {
+  id          String    @id @default(cuid())
+  title       String
+  content     String
+  priority    String    @default("NORMAL") // NORMAL, IMPORTANT, URGENT
+  category    String?
+  isPinned    Boolean   @default(false)
+  expiresAt   DateTime?
+  createdById String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  createdBy   User      @relation("CreatedBy", fields: [createdById], references: [id])
+
+  @@index([priority])
+  @@index([isPinned])
+  @@index([createdById])
+}
+
+model Complaint {
+  id          String    @id @default(cuid())
+  title       String
+  description String
+  category    String
+  priority    String    @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  status      String    @default("OPEN") // OPEN, IN_PROGRESS, RESOLVED, CLOSED
+  attachments String?   // JSON string
+  resolution  String?
+  createdById String
+  assignedToId String?
+  resolvedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  createdBy   User      @relation("CreatedBy", fields: [createdById], references: [id])
+  assignedTo  User?     @relation("AssignedTo", fields: [assignedToId], references: [id])
+
+  @@index([status])
+  @@index([priority])
+  @@index([createdById])
+}
+
+model Vendor {
+  id          String   @id @default(cuid())
+  name        String
+  email       String?
+  phone       String?
+  address     String?
+  gstNumber   String?
+  category    String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  amcs        AMC[]
+
+  @@index([category])
+}
+
+model AMC {
+  id              String    @id @default(cuid())
+  title           String
+  description     String?
+  vendorId        String
+  category        String
+  contractNumber  String?
+  startDate       DateTime
+  endDate         DateTime
+  amount          Float
+  paymentFrequency String   @default("YEARLY")
+  lastServiceDate DateTime?
+  nextServiceDate DateTime?
+  contactPerson   String?
+  contactPhone    String?
+  contractFileUrl String?
+  status          String    @default("ACTIVE") // ACTIVE, EXPIRING_SOON, EXPIRED, CANCELLED
+  reminderDays    Int       @default(30)
+  notes           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  vendor          Vendor    @relation(fields: [vendorId], references: [id])
+  services        AMCService[]
+
+  @@index([vendorId])
+  @@index([status])
+  @@index([endDate])
+  @@index([category])
+}
+
+model AMCService {
+  id            String   @id @default(cuid())
+  amcId         String
+  serviceDate   DateTime
+  description   String
+  technicianName String?
+  status        String   @default("COMPLETED")
+  remarks       String?
+  createdAt     DateTime @default(now())
+
+  amc           AMC      @relation(fields: [amcId], references: [id], onDelete: Cascade)
+
+  @@index([amcId])
+  @@index([serviceDate])
+}
+
+model MaintenanceTask {
+  id            String   @id @default(cuid())
+  title         String
+  description   String
+  category      String
+  location      String
+  priority      String   @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  status        String   @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED, ON_HOLD, CANCELLED
+  estimatedCost Float?
+  actualCost    Float?
+  assignedTo    String?
+  vendorId      String?
+  dueDate       DateTime?
+  startedAt     DateTime?
+  completedAt   DateTime?
+  attachments   String?  // JSON string
+  remarks       String?
+  createdById   String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([status])
+  @@index([priority])
+  @@index([category])
+  @@index([dueDate])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+}
+
+model BulkImportLog {
+  id            String   @id @default(cuid())
+  fileName      String
+  totalRows     Int
+  successCount  Int
+  failureCount  Int
+  errors        String?  // JSON string of errors
+  importedById  String
+  createdAt     DateTime @default(now())
+
+  @@index([importedById])
+}
