@@ -26,7 +26,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     const { id } = await params;
     const body = await request.json();
-    const { paymentMode, paymentReference } = body;
+    const { paymentMode, paymentReference: _paymentReference } = body;
 
     const booking = await prisma.amenityBooking.findUnique({
       where: { id },
