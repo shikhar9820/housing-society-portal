@@ -16,6 +16,7 @@ import {
   Wrench,
   FileCheck,
   Building2,
+  CalendarDays,
 } from 'lucide-react'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Role } from '@/types'
@@ -57,6 +58,11 @@ const navItems: NavItem[] = [
     title: 'AMC Contracts',
     href: '/dashboard/amc',
     icon: FileCheck,
+  },
+  {
+    title: 'Amenities',
+    href: '/dashboard/amenities',
+    icon: CalendarDays,
   },
   {
     title: 'Maintenance',

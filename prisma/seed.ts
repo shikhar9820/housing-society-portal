@@ -280,6 +280,89 @@ async function main() {
   })
   console.log('Created sample AMC')
 
+  // Create sample amenities
+  const amenities = [
+    {
+      name: 'Clubhouse',
+      description: 'Fully air-conditioned clubhouse with seating capacity for 100 people. Ideal for parties and gatherings.',
+      category: 'CLUBHOUSE',
+      location: 'Ground Floor, Block A',
+      capacity: 100,
+      hourlyRate: 1500,
+      halfDayRate: 5000,
+      fullDayRate: 8000,
+      securityDeposit: 5000,
+      operatingHours: JSON.stringify({ start: '08:00', end: '22:00' }),
+      advanceBookingDays: 30,
+      requiresApproval: false,
+    },
+    {
+      name: 'Party Hall',
+      description: 'Elegant party hall with kitchen access and sound system. Perfect for birthdays and anniversaries.',
+      category: 'PARTY_HALL',
+      location: 'First Floor, Community Center',
+      capacity: 50,
+      hourlyRate: 1000,
+      halfDayRate: 3500,
+      fullDayRate: 6000,
+      securityDeposit: 3000,
+      operatingHours: JSON.stringify({ start: '09:00', end: '23:00' }),
+      advanceBookingDays: 14,
+      requiresApproval: false,
+    },
+    {
+      name: 'Garden/Lawn Area',
+      description: 'Beautiful garden area with lawn seating. Great for outdoor events and functions.',
+      category: 'GARDEN',
+      location: 'Central Garden',
+      capacity: 150,
+      hourlyRate: 800,
+      halfDayRate: 2500,
+      fullDayRate: 4000,
+      securityDeposit: 2000,
+      operatingHours: JSON.stringify({ start: '06:00', end: '21:00' }),
+      advanceBookingDays: 30,
+      requiresApproval: true,
+    },
+    {
+      name: 'Guest Room 1',
+      description: 'Comfortable guest room with attached bathroom and AC. Suitable for 2-3 guests.',
+      category: 'GUEST_ROOM',
+      location: 'First Floor, Guest Wing',
+      capacity: 3,
+      hourlyRate: null,
+      halfDayRate: null,
+      fullDayRate: 800,
+      securityDeposit: 500,
+      operatingHours: JSON.stringify({ start: '12:00', end: '11:00' }),
+      advanceBookingDays: 7,
+      requiresApproval: false,
+    },
+    {
+      name: 'Terrace',
+      description: 'Open terrace area with beautiful views. Can be used for small gatherings and yoga sessions.',
+      category: 'TERRACE',
+      location: 'Rooftop, Block A',
+      capacity: 30,
+      hourlyRate: 500,
+      halfDayRate: 1500,
+      fullDayRate: 2500,
+      securityDeposit: 1000,
+      operatingHours: JSON.stringify({ start: '06:00', end: '20:00' }),
+      advanceBookingDays: 14,
+      requiresApproval: true,
+    },
+  ]
+
+  for (const amenity of amenities) {
+    await prisma.amenity.upsert({
+      where: { name: amenity.name },
+      update: {},
+      create: amenity,
+    })
+  }
+  console.log(`Created ${amenities.length} amenities`)
+
   console.log('\n✅ Seeding complete!')
   console.log('\n📋 Login credentials (all use same password):')
   console.log('─────────────────────────────────────')

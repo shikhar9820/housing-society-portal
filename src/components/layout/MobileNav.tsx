@@ -16,6 +16,7 @@ import {
   Wrench,
   FileCheck,
   Building2,
+  CalendarDays,
   X,
 } from 'lucide-react'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
@@ -37,6 +38,7 @@ const navItems: NavItem[] = [
   { title: 'Voting', href: '/dashboard/voting', icon: Vote },
   { title: 'Tenders', href: '/dashboard/tenders', icon: FileSpreadsheet },
   { title: 'AMC Contracts', href: '/dashboard/amc', icon: FileCheck },
+  { title: 'Amenities', href: '/dashboard/amenities', icon: CalendarDays },
   { title: 'Maintenance', href: '/dashboard/maintenance', icon: Wrench },
   { title: 'Announcements', href: '/dashboard/announcements', icon: Megaphone },
   { title: 'Complaints', href: '/dashboard/complaints', icon: AlertCircle },

@@ -124,6 +124,7 @@ export const EXPENSE_CATEGORIES = [
   { value: 'WATER', label: 'Water' },
   { value: 'LIFT_MAINTENANCE', label: 'Lift Maintenance' },
   { value: 'PEST_CONTROL', label: 'Pest Control' },
+  { value: 'AMENITY_INCOME', label: 'Amenity Booking Income' },
   { value: 'OTHER', label: 'Other' },
 ] as const
 
@@ -157,3 +158,110 @@ export const TENDER_CATEGORIES = [
   { value: 'LIFT', label: 'Lift Maintenance' },
   { value: 'OTHER', label: 'Other' },
 ] as const
+
+// Amenity Booking Types & Constants
+export const AMENITY_CATEGORIES = [
+  { value: 'CLUBHOUSE', label: 'Clubhouse' },
+  { value: 'PARTY_HALL', label: 'Party Hall' },
+  { value: 'GARDEN', label: 'Garden/Lawn' },
+  { value: 'GUEST_ROOM', label: 'Guest Room' },
+  { value: 'TERRACE', label: 'Terrace' },
+  { value: 'GYM', label: 'Gymnasium' },
+  { value: 'SWIMMING_POOL', label: 'Swimming Pool' },
+  { value: 'SPORTS_COURT', label: 'Sports Court' },
+  { value: 'COMMUNITY_HALL', label: 'Community Hall' },
+  { value: 'OTHER', label: 'Other' },
+] as const
+
+export const BOOKING_STATUS = [
+  { value: 'PENDING', label: 'Pending', color: 'bg-yellow-500' },
+  { value: 'CONFIRMED', label: 'Confirmed', color: 'bg-blue-500' },
+  { value: 'CANCELLED', label: 'Cancelled', color: 'bg-red-500' },
+  { value: 'COMPLETED', label: 'Completed', color: 'bg-green-500' },
+  { value: 'REJECTED', label: 'Rejected', color: 'bg-red-600' },
+] as const
+
+export const PAYMENT_STATUS = [
+  { value: 'UNPAID', label: 'Unpaid', color: 'bg-orange-500' },
+  { value: 'PAID', label: 'Paid', color: 'bg-green-500' },
+  { value: 'REFUNDED', label: 'Refunded', color: 'bg-purple-500' },
+] as const
+
+export const BOOKING_TYPES = [
+  { value: 'HOURLY', label: 'Hourly' },
+  { value: 'HALF_DAY', label: 'Half Day' },
+  { value: 'FULL_DAY', label: 'Full Day' },
+] as const
+
+export interface Amenity {
+  id: string
+  name: string
+  description: string | null
+  category: string
+  location: string | null
+  capacity: number | null
+  hourlyRate: number | null
+  halfDayRate: number | null
+  fullDayRate: number | null
+  securityDeposit: number | null
+  rules: string | null
+  imageUrl: string | null
+  operatingHours: string | null
+  advanceBookingDays: number
+  minBookingHours: number
+  maxBookingHours: number
+  requiresApproval: boolean
+  isActive: boolean
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface AmenityBooking {
+  id: string
+  amenityId: string
+  flatId: string
+  bookingDate: Date
+  startTime: string
+  endTime: string
+  purpose: string | null
+  attendeesCount: number | null
+  bookingType: string
+  amount: number
+  securityDeposit: number
+  totalAmount: number
+  status: string
+  paymentStatus: string
+  paymentMode: string | null
+  expenseId: string | null
+  rejectionReason: string | null
+  cancelReason: string | null
+  confirmedById: string | null
+  confirmedAt: Date | null
+  cancelledAt: Date | null
+  completedAt: Date | null
+  createdById: string
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface AmenityBookingWithDetails extends AmenityBooking {
+  amenity: {
+    id: string
+    name: string
+    category: string
+    location: string | null
+  }
+  flat: {
+    flatNumber: string
+    block: string | null
+  }
+  createdBy: {
+    id: string
+    name: string
+    email: string
+  }
+  confirmedBy?: {
+    id: string
+    name: string
+  } | null
+}

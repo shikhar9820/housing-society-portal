@@ -34,6 +34,8 @@ model User {
   complaints          Complaint[]     @relation("CreatedBy")
   assignedComplaints  Complaint[]     @relation("AssignedTo")
   passwordResetTokens PasswordResetToken[]
+  createdBookings     AmenityBooking[] @relation("BookingCreatedBy")
+  confirmedBookings   AmenityBooking[] @relation("BookingConfirmedBy")
 
   @@index([flatId])
   @@index([role])
@@ -52,8 +54,9 @@ model Flat {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  residents   User[]
-  votes       PollVote[]
+  residents       User[]
+  votes           PollVote[]
+  amenityBookings AmenityBooking[]
 
   @@index([block])
   @@index([floor])
@@ -387,4 +390,71 @@ model BulkImportLog {
   createdAt     DateTime @default(now())
 
   @@index([importedById])
+}
+
+model Amenity {
+  id                 String   @id @default(cuid())
+  name               String   @unique
+  description        String?
+  category           String   // CLUBHOUSE, PARTY_HALL, GARDEN, GYM, SWIMMING_POOL, GUEST_ROOM
+  location           String?
+  capacity           Int?
+  hourlyRate         Float?
+  halfDayRate        Float?
+  fullDayRate        Float?
+  securityDeposit    Float?
+  rules              String?
+  imageUrl           String?
+  operatingHours     String?  // JSON: {"start": "06:00", "end": "22:00"}
+  advanceBookingDays Int      @default(30)
+  minBookingHours    Int      @default(1)
+  maxBookingHours    Int      @default(8)
+  requiresApproval   Boolean  @default(false)
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  bookings AmenityBooking[]
+
+  @@index([category])
+  @@index([isActive])
+}
+
+model AmenityBooking {
+  id               String    @id @default(cuid())
+  amenityId        String
+  flatId           String
+  bookingDate      DateTime
+  startTime        String    // "HH:mm" format
+  endTime          String
+  purpose          String?
+  attendeesCount   Int?
+  bookingType      String    @default("HOURLY") // HOURLY, HALF_DAY, FULL_DAY
+  amount           Float
+  securityDeposit  Float     @default(0)
+  totalAmount      Float
+  status           String    @default("PENDING") // PENDING, CONFIRMED, CANCELLED, COMPLETED, REJECTED
+  paymentStatus    String    @default("UNPAID")  // UNPAID, PAID, REFUNDED
+  paymentMode      String?
+  expenseId        String?   // Link to finance record
+  rejectionReason  String?
+  cancelReason     String?
+  confirmedById    String?
+  confirmedAt      DateTime?
+  cancelledAt      DateTime?
+  completedAt      DateTime?
+  createdById      String
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  amenity     Amenity @relation(fields: [amenityId], references: [id])
+  flat        Flat    @relation(fields: [flatId], references: [id])
+  createdBy   User    @relation("BookingCreatedBy", fields: [createdById], references: [id])
+  confirmedBy User?   @relation("BookingConfirmedBy", fields: [confirmedById], references: [id])
+
+  @@index([amenityId])
+  @@index([flatId])
+  @@index([bookingDate])
+  @@index([status])
+  @@index([createdById])
 }

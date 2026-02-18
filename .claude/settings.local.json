@@ -6,7 +6,14 @@
       "Bash(npx prisma db seed:*)",
       "Bash(npm run dev:*)",
       "Bash(timeout /t 8 /nobreak)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(vercel --version:*)",
+      "Bash(npm install:*)",
+      "Bash(vercel:*)",
+      "Bash(git remote add:*)",
+      "Bash(git push:*)",
+      "Bash(npx prisma generate:*)"
     ]
   }
 }
