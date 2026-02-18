@@ -13,8 +13,9 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const year = searchParams.get('year') || new Date().getFullYear().toString();
-    const month = searchParams.get('month'); // optional, format: 1-12
+    const _year = searchParams.get('year') || new Date().getFullYear().toString();
+    const _month = searchParams.get('month'); // optional, format: 1-12
+    // Note: _year and _month reserved for future filtering functionality
 
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();

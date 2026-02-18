@@ -19,6 +19,24 @@ function SetPasswordForm() {
   const [userName, setUserName] = useState('');
 
   useEffect(() => {
+    const validateToken = async () => {
+      try {
+        const res = await fetch(`/api/auth/validate-token?token=${token}`);
+        const data = await res.json();
+
+        if (data.valid) {
+          setTokenValid(true);
+          setUserName(data.userName || '');
+        } else {
+          setError(data.error || 'Invalid or expired token');
+        }
+      } catch {
+        setError('Failed to validate token');
+      } finally {
+        setValidating(false);
+      }
+    };
+
     if (token) {
       validateToken();
     } else {
@@ -26,24 +44,6 @@ function SetPasswordForm() {
       setError('Invalid or missing token');
     }
   }, [token]);
-
-  const validateToken = async () => {
-    try {
-      const res = await fetch(`/api/auth/validate-token?token=${token}`);
-      const data = await res.json();
-
-      if (data.valid) {
-        setTokenValid(true);
-        setUserName(data.userName || '');
-      } else {
-        setError(data.error || 'Invalid or expired token');
-      }
-    } catch {
-      setError('Failed to validate token');
-    } finally {
-      setValidating(false);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

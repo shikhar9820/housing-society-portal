@@ -26,7 +26,6 @@ import {
 import {
   FileText,
   Search,
-  Calendar,
   IndianRupee,
   Clock,
   Building2,
@@ -91,7 +90,7 @@ const mockTenders = [
 export default function PublicTendersPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('all')
-  const [selectedTender, setSelectedTender] = useState<typeof mockTenders[0] | null>(null)
+  const [_selectedTender, setSelectedTender] = useState<typeof mockTenders[0] | null>(null)
   const [bidSubmitted, setBidSubmitted] = useState(false)
 
   const filteredTenders = mockTenders
